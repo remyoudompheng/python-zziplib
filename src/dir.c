@@ -35,7 +35,7 @@ static PyObject* dir_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs
 }
 
 PyTypeObject PyZzipDir_T = {
-  .tp_name = "Dir",
+  .tp_name = "zziplib.Dir",
   .tp_basicsize = sizeof(PyZzipDir),
   .tp_alloc = PyType_GenericAlloc,
   .tp_dealloc = (destructor)dir_dealloc,

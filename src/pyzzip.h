@@ -7,6 +7,8 @@
 typedef struct _PyZzipFile {
   PyObject_HEAD
   ZZIP_FILE *file;
+  /* A PyZzipDir instance */
+  PyObject *parent;
 } PyZzipFile;
 
 typedef struct _PyZzipDir {
