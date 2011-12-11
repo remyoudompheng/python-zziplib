@@ -1,9 +1,42 @@
 #include <Python.h>
 #include "pyzzip.h"
 
-extern PyObject* PyZzipError_T;
+extern PyTypeObject *PyZzipError_Tp;
+
+static PyObject* dir_openentry(PyObject *self, PyObject *args) {
+  PyZzipFile *result = NULL;
+  PyZzipDir *this = self;
+  char *entryname = NULL;
+  ZZIP_FILE *f;
+
+  if (!PyArg_ParseTuple(args, "s", &entryname))
+    return NULL;
+  if (this->dir == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "archive is not open!");
+    return NULL;
+  }
+
+  f = zzip_file_open(this->dir, entryname, 'r');
+  if (f == NULL) {
+    int errcode = zzip_error(this->dir);
+    PyErr_SetObject((PyObject*)PyZzipError_Tp, PyInt_FromLong(errcode));
+    return NULL;
+  }
+
+  result = (PyZzipFile*)PyZzipFile_T.tp_alloc(&PyZzipFile_T, 0);
+  result->parent = self;
+  result->file = f;
+  Py_INCREF(self);
+  Py_INCREF(result);
+  return (PyObject*)result;
+}
 
 static PyMethodDef dir_methods [] = {
+  { .ml_name = "open",
+    .ml_meth = dir_openentry,
+    .ml_flags = METH_VARARGS,
+    .ml_doc = "open an entry by name"
+  },
   { NULL, NULL, 0, NULL },
 };
 

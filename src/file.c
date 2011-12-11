@@ -4,7 +4,7 @@ static PyObject* file_read(PyObject *self, PyObject *args) {
   Py_ssize_t n = 0;
   PyObject *result = NULL;
   PyZzipFile *this = self;
-  int ok;
+  int err;
 
   if (!PyArg_ParseTuple(args, "n", &n)) {
     return NULL;
@@ -19,8 +19,8 @@ static PyObject* file_read(PyObject *self, PyObject *args) {
   if (result == NULL) return NULL;
 
   n = zzip_file_read(this->file, PyString_AS_STRING(result), n);
-  ok = _PyString_Resize(&result, n);
-  if (!ok) return NULL;
+  err = _PyString_Resize(&result, n);
+  if (err == -1) return NULL;
 
   return result;
 }
@@ -31,15 +31,12 @@ static PyObject* file_close(PyObject *self, PyObject *args) {
     zzip_file_close(this->file);
     this->file = NULL;
   }
+  Py_CLEAR(this->parent);
   Py_RETURN_NONE;
 }
 
 static void file_dealloc(PyZzipFile *self) {
-  if (self->file != NULL) {
-    zzip_file_close(self->file);
-    self->file = NULL;
-  }
-  Py_CLEAR(self->parent);
+  file_close(self, NULL);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
