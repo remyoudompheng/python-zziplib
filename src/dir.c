@@ -23,11 +23,11 @@ static PyObject* dir_openentry(PyObject *self, PyObject *args) {
     return NULL;
   }
 
+  /* fprintf(stderr, "Allocing Entry object\n"); */
   result = (PyZzipFile*)PyZzipFile_T.tp_alloc(&PyZzipFile_T, 0);
   result->parent = self;
   result->file = f;
   Py_INCREF(self);
-  Py_INCREF(result);
   return (PyObject*)result;
 }
 
@@ -41,6 +41,7 @@ static PyMethodDef dir_methods [] = {
 };
 
 static void dir_dealloc(PyZzipDir *self) {
+  /* fprintf(stderr, "Deallocing Dir object\n"); */
   if (self->dir != NULL) {
     zzip_dir_close(self->dir);
     self->dir = NULL;
@@ -48,21 +49,24 @@ static void dir_dealloc(PyZzipDir *self) {
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyObject* dir_new(PyTypeObject *subtype, PyObject *args, PyObject *kwargs) {
+/* returns -1 on error. */
+PyObject* pyzzip_opendir(PyObject *self, PyObject *args) {
   char *filename;
-  char *keywords[] = { "path", NULL };
   zzip_error_t errcode = 0;
-  PyZzipDir *result = subtype->tp_alloc(subtype, 0);
+  ZZIP_FILE *f;
+  PyZzipDir *this = NULL;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s:Dir", keywords, &filename))
+  if (!PyArg_ParseTuple(args, "s:Dir", &filename))
     return NULL;
 
-  result->dir = zzip_dir_open(filename, &errcode);
+  f = zzip_dir_open(filename, &errcode);
   if (errcode == 0) {
-    Py_INCREF(result);
-    return (PyObject*)result;
+    /* fprintf(stderr, "Allocing Dir object\n"); */
+    this = PyZzipDir_T.tp_alloc(&PyZzipDir_T, 0);
+    this->dir = f;
+    return this;
   } else {
-    PyErr_SetObject(PyZzipError_T, PyInt_FromLong(errcode));
+    PyErr_SetObject((PyObject*)PyZzipError_Tp, PyInt_FromLong(errcode));
     return NULL;
   }
 }
@@ -74,7 +78,7 @@ PyTypeObject PyZzipDir_T = {
   .tp_dealloc = (destructor)dir_dealloc,
   .tp_doc = "An object representing a Zip archive.",
   .tp_methods = dir_methods,
-  .tp_new = dir_new,
+  .tp_free = PyObject_Del,
 };
 
 void add_dir_types(PyObject *m) {

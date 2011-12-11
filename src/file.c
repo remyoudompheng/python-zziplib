@@ -36,6 +36,7 @@ static PyObject* file_close(PyObject *self, PyObject *args) {
 }
 
 static void file_dealloc(PyZzipFile *self) {
+  /* fprintf(stderr, "Deallocing Entry object\n"); */
   file_close(self, NULL);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
@@ -60,6 +61,7 @@ PyTypeObject PyZzipFile_T = {
   .tp_dealloc = (destructor)file_dealloc,
   .tp_doc = "An object representing an entry in a Zip archive.",
   .tp_methods = file_methods,
+  .tp_free = PyObject_Del,
 };
 
 void add_file_types(PyObject *m) {
