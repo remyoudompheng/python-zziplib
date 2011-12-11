@@ -4,3 +4,16 @@ Dependencies:
 
 * zziplib
 
+Usage:
+
+import zziplib
+
+z = zziplib.open("archive.zip")
+
+entry = z.open("file1.txt")
+while True:
+    s = entry.read(4096)
+    if not s: break
+    do_something(s)
+entry.close()
+
