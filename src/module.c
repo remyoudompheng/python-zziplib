@@ -24,6 +24,8 @@ static PyMethodDef module_methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
+
+#if PY_MAJOR_VERSION == 2
 PUBLICSYM
 PyMODINIT_FUNC
 initzziplib(void) {
@@ -34,3 +36,23 @@ initzziplib(void) {
   add_dir_types(m);
   add_error_types(m);
 }
+#else
+static struct PyModuleDef module = {
+  .m_base = PyModuleDef_HEAD_INIT,
+  .m_name = "zziplib",
+  .m_doc = "Module to open zip files with zziplib",
+  .m_size = -1,
+  .m_methods = module_methods,
+};
+
+PUBLICSYM
+PyMODINIT_FUNC
+PyInit_zziplib(void) {
+  PyObject *m;
+  m = PyModule_Create(&module);
+  add_file_types(m);
+  add_dir_types(m);
+  add_error_types(m);
+  return m;
+}
+#endif
