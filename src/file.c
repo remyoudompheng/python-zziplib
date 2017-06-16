@@ -52,6 +52,7 @@ static PyMethodDef file_methods[] = {
     .ml_flags = METH_VARARGS,
     .ml_doc = "Closes the entry."
   },
+  { NULL, NULL, 0, NULL },
 };
 
 PyTypeObject PyZzipFile_T = {
